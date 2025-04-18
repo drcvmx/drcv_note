@@ -80,7 +80,7 @@ module.exports = {
   },
   plugins: [
     require("tailwindcss-animate"),
-    require('@tailwindcss/typography') // Agrega esta línea
+    require('@tailwindcss/typography')
   ],
   
 }
