@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 142.1 76.2% 36.3%;
+  --primary-foreground: 355.7 100% 97.3%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 142.1 76.2% 36.3%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 20 14.3% 4.1%;
+  --foreground: 0 0% 95%;
+  --card: 24 9.8% 10%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 142.1 70.6% 45.3%;
+  --primary-foreground: 144.9 80.4% 10%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 12 6.5% 15.1%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 85.7% 97.3%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 142.4 71.8% 29.2%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.note-content {
+  @apply prose prose-sm max-w-none dark:prose-invert;
+}
+
+.note-content h1 {
+  @apply text-2xl font-bold mt-4 mb-2;
+}
+
+.note-content h2 {
+  @apply text-xl font-bold mt-3 mb-2;
+}
+
+.note-content h3 {
+  @apply text-lg font-bold mt-3 mb-1;
+}
+
+.note-content p {
+  @apply my-2;
+}
+
+.note-content ul {
+  @apply list-disc pl-5 my-2;
+}
+
+.note-content ol {
+  @apply list-decimal pl-5 my-2;
+}
+
+.note-content blockquote {
+  @apply border-l-4 border-gray-300 dark:border-gray-700 pl-4 italic my-3;
+}
+
+.note-content pre {
+  @apply bg-gray-100 dark:bg-gray-800 p-3 rounded my-3 overflow-x-auto;
+}
+
+.note-content code {
+  @apply bg-gray-100 dark:bg-gray-800 px-1 rounded;
+}
+
+.note-content a {
+  @apply text-primary hover:underline;
+}
+
+.note-content img {
+  @apply max-w-full h-auto rounded my-3;
+}
+
+.note-content table {
+  @apply w-full border-collapse my-3;
+}
+
+.note-content th,
+.note-content td {
+  @apply border border-gray-300 dark:border-gray-700 p-2;
+}
+
+.note-content th {
+  @apply bg-gray-100 dark:bg-gray-800;
+}
+
+.bg-grid-pattern {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
