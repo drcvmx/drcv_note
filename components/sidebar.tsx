@@ -2,16 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { FileText, FolderOpen, Plus, Trash2, ChevronRight, ChevronDown, Home, Settings, Moon, Sun } from "lucide-react"
+import { FileText, FolderOpen, Plus, Trash2, ChevronRight, ChevronDown, Home, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Note } from "@/types/notes"
-import { useTheme } from "next-themes"
 
-// Modificar la interfaz SidebarProps para incluir selectedNote
 interface SidebarProps {
   notes: Note[]
   trashCount: number
@@ -19,11 +17,34 @@ interface SidebarProps {
   selectedNote?: Note | null
 }
 
-// Actualizar la desestructuración de props en la definición de la función
 export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: SidebarProps) {
   const pathname = usePathname()
-  const { theme, setTheme } = useTheme()
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+
+  // Detectar tamaño de pantalla para manejar el sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true)
+      } else {
+        setIsSidebarOpen(false)
+      }
+    }
+
+    // Configuración inicial
+    handleResize()
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
+
+  // Cerrar sidebar después de seleccionar una nota en móvil
+  useEffect(() => {
+    if (window.innerWidth < 1024 && selectedNote) {
+      setIsSidebarOpen(false)
+    }
+  }, [selectedNote])
 
   // Filter root notes (no parent)
   const rootNotes = notes.filter((note) => !note.parent_id && !note.deleted_at)
@@ -44,6 +65,11 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
     if (onSelectNote) {
       e.preventDefault()
       onSelectNote(note)
+
+      // Cerrar sidebar en móvil después de seleccionar
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false)
+      }
     }
   }
 
@@ -62,6 +88,11 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
             if (onSelectNote) {
               e.preventDefault()
               onSelectNote(note)
+
+              // Cerrar sidebar en móvil después de seleccionar
+              if (window.innerWidth < 1024) {
+                setIsSidebarOpen(false)
+              }
             }
 
             // Si es una carpeta con hijos, también alternar la expansión
@@ -114,80 +145,108 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
     )
   }
 
+  // Botón para mostrar/ocultar sidebar en móvil
+  const SidebarToggle = () => (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      className="fixed top-4 left-4 z-50 lg:hidden bg-white/10 text-white hover:bg-white/20 rounded-full"
+    >
+      {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+    </Button>
+  )
+
   return (
-    <div className="w-64 h-full flex flex-col backdrop-blur-lg bg-white/10 border-r border-white/20">
-      <div className="p-4 border-b border-white/20">
-        <Link href="/">
-          <h1 className="text-xl font-semibold flex items-center gap-2 text-white">
-            <FileText className="h-5 w-5 text-blue-300" />
-            <span>Simplify Notes</span>
-          </h1>
-        </Link>
-      </div>
+    <>
+      <SidebarToggle />
 
-      <div className="p-2">
-        <Link href="/notes/new">
-          <Button className="w-full justify-start gap-2 bg-blue-500 hover:bg-blue-600 text-white">
-            <Plus className="h-4 w-4" />
-            New Note
-          </Button>
-        </Link>
-      </div>
-
-      <nav className="flex-1 overflow-y-auto p-2">
-        <div className="mb-2">
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
-              pathname === "/" ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10",
-            )}
-          >
-            <Home className="h-4 w-4" />
-            <span>Home</span>
+      <div
+        className={cn(
+          "w-64 h-full flex flex-col backdrop-blur-lg bg-white/10 border-r border-white/20 transition-all duration-300 z-40",
+          "fixed lg:relative",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        )}
+      >
+        <div className="p-4 border-b border-white/20">
+          <Link href="/">
+            <h1 className="text-xl font-semibold flex items-center gap-2 text-white">
+              <FileText className="h-5 w-5 text-blue-300" />
+              <span>Simplify Notes</span>
+            </h1>
           </Link>
         </div>
 
-        <div className="mt-4 mb-2">
-          <h2 className="px-2 text-xs font-semibold text-white/50 uppercase tracking-wider">My Notes</h2>
+        <div className="p-2">
+          <Link href="/notes/new">
+            <Button
+              className="w-full justify-start gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setIsSidebarOpen(false)
+                }
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              New Note
+            </Button>
+          </Link>
         </div>
 
-        <div className="space-y-1">{rootNotes.map((note) => renderNote(note))}</div>
-      </nav>
-
-      <div className="p-2 border-t border-white/20 mt-auto">
-        <Link
-          href="/trash"
-          className={cn(
-            "flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm",
-            pathname === "/trash" ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10",
-          )}
-        >
-          <div className="flex items-center gap-2">
-            <Trash2 className="h-4 w-4" />
-            <span>Trash</span>
-          </div>
-          {trashCount > 0 && (
-            <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">{trashCount}</span>
-          )}
-        </Link>
-
-        <div className="flex items-center justify-between mt-2 px-2 py-1.5">
-          <div className="flex items-center gap-2 text-sm text-white/80">
-            <Settings className="h-4 w-4" />
-            <span>Theme</span>
+        <nav className="flex-1 overflow-y-auto p-2">
+          <div className="mb-2">
+            <Link
+              href="/"
+              className={cn(
+                "flex items-center gap-2 px-2 py-1.5 rounded-md text-sm",
+                pathname === "/" ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10",
+              )}
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setIsSidebarOpen(false)
+                }
+              }}
+            >
+              <Home className="h-4 w-4" />
+              <span>Home</span>
+            </Link>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="text-white hover:bg-white/10"
+          <div className="mt-4 mb-2">
+            <h2 className="px-2 text-xs font-semibold text-white/50 uppercase tracking-wider">My Notes</h2>
+          </div>
+
+          <div className="space-y-1">{rootNotes.map((note) => renderNote(note))}</div>
+        </nav>
+
+        <div className="p-2 border-t border-white/20 mt-auto">
+          <Link
+            href="/trash"
+            className={cn(
+              "flex items-center justify-between w-full px-2 py-1.5 rounded-md text-sm",
+              pathname === "/trash" ? "bg-white/20 text-white" : "text-white/80 hover:bg-white/10",
+            )}
+            onClick={() => {
+              if (window.innerWidth < 1024) {
+                setIsSidebarOpen(false)
+              }
+            }}
           >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4" />
+              <span>Trash</span>
+            </div>
+            {trashCount > 0 && (
+              <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">{trashCount}</span>
+            )}
+          </Link>
         </div>
       </div>
-    </div>
+
+      {/* Overlay para cerrar el sidebar en móvil */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+    </>
   )
 }

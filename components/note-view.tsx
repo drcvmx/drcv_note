@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { formatDate } from "@/lib/utils"
-import { FileText, FolderOpen, Trash2, Plus, Palette, Edit, Check, X } from "lucide-react"
+import { FileText, FolderOpen, Trash2, Plus, Palette, Edit, Check, X, MoreHorizontal } from "lucide-react"
 import type { Note } from "@/types/notes"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -29,6 +29,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
   const [isEditing, setIsEditing] = useState(false)
   const [childNotes, setChildNotes] = useState<Note[]>([])
   const [isLoadingChildren, setIsLoadingChildren] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   const noteColors = [
     { name: "Default", value: "bg-white/10" },
@@ -139,17 +140,21 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
 
   return (
     <Card className="h-full flex flex-col backdrop-blur-lg bg-white/10 border-white/20 shadow-xl">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b border-white/20">
+      <CardHeader className="flex flex-col space-y-2 pb-2 border-b border-white/20 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div className="flex items-center gap-2">
           {note.type === "structured" ? (
             <FolderOpen className="h-5 w-5 text-blue-300" />
           ) : (
             <FileText className="h-5 w-5 text-white" />
           )}
-          <h2 className="text-lg font-semibold text-white">{note.title || "Untitled"}</h2>
-          <div className="text-xs text-white/50 ml-2">Last updated: {formatDate(note.updated_at)}</div>
+          <div>
+            <h2 className="text-lg font-semibold text-white">{note.title || "Untitled"}</h2>
+            <div className="text-xs text-white/50">Last updated: {formatDate(note.updated_at)}</div>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Botones para pantallas medianas y grandes */}
+        <div className="hidden sm:flex items-center gap-2">
           {!isEditing ? (
             <Button
               variant="outline"
@@ -234,6 +239,95 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
               <Edit className="mr-2 h-4 w-4" /> Edit
             </Button>
           )}
+        </div>
+
+        {/* Menú desplegable para móviles */}
+        <div className="flex sm:hidden justify-end">
+          <Popover open={showMobileMenu} onOpenChange={setShowMobileMenu}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+              >
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 bg-white/10 backdrop-blur-lg border-white/20 p-0">
+              <div className="flex flex-col">
+                {!isEditing ? (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditing(true)
+                      setShowMobileMenu(false)
+                    }}
+                    className="justify-start text-white hover:bg-white/20"
+                  >
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setIsEditing(false)
+                        setShowMobileMenu(false)
+                      }}
+                      className="justify-start text-white hover:bg-white/20"
+                    >
+                      <X className="mr-2 h-4 w-4" /> Cancel
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        handleSave()
+                        setShowMobileMenu(false)
+                      }}
+                      disabled={isSubmitting}
+                      className="justify-start text-green-300 hover:bg-white/20"
+                    >
+                      <Check className="mr-2 h-4 w-4" /> Save
+                    </Button>
+                  </>
+                )}
+
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowColorPicker(!showColorPicker)
+                    setShowMobileMenu(false)
+                  }}
+                  className="justify-start text-white hover:bg-white/20"
+                >
+                  <Palette className="mr-2 h-4 w-4" /> Change Color
+                </Button>
+
+                {note.type === "structured" && (
+                  <Link href={`/notes/new?parentId=${note.id}`}>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-white hover:bg-white/20"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add Subnote
+                    </Button>
+                  </Link>
+                )}
+
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    handleDelete()
+                    setShowMobileMenu(false)
+                  }}
+                  className="justify-start text-white hover:bg-white/20"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Move to Trash
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </CardHeader>
       <CardContent className="flex-1 overflow-auto p-0">
@@ -327,3 +421,4 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
     </Card>
   )
 }
+
