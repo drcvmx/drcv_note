@@ -6,9 +6,10 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { FileText, FolderOpen, Plus, Trash2, ChevronRight, ChevronDown, Home, Menu, X } from "lucide-react"
+import { FileText, FolderOpen, Plus, Trash2, ChevronRight, ChevronDown, Home, Menu, X, LogOut } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Note } from "@/types/notes"
+import { useAuth } from "@/contexts/auth-context"
 
 interface SidebarProps {
   notes: Note[]
@@ -21,6 +22,7 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
   const pathname = usePathname()
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const { user, logout } = useAuth()
 
   // Detectar tamaño de pantalla para manejar el sidebar
   useEffect(() => {
@@ -151,7 +153,8 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
       variant="ghost"
       size="icon"
       onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      className="fixed top-4 left-4 z-50 lg:hidden bg-white/10 text-white hover:bg-white/20 rounded-full"
+      className="fixed top-4 left-4 z-[60] lg:hidden bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 rounded-full shadow-lg border border-white/20"
+      aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
     >
       {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
     </Button>
@@ -168,11 +171,10 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="p-4 border-b border-white/20">
+        <div className="p-4 border-b border-white/20 flex justify-center">
           <Link href="/">
             <h1 className="text-xl font-semibold flex items-center gap-2 text-white">
-              <FileText className="h-5 w-5 text-blue-300" />
-              <span>Simplify Notes</span>
+              <span>drcv_note</span>
             </h1>
           </Link>
         </div>
@@ -219,7 +221,15 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
           <div className="space-y-1">{rootNotes.map((note) => renderNote(note))}</div>
         </nav>
 
-        <div className="p-2 border-t border-white/20 mt-auto">
+        <div className="p-2 border-t border-white/20 mt-auto space-y-2">
+          <div className="px-2 py-1">
+            <div className="text-xs text-white/50 mb-1">Conectado como:</div>
+            <div className="text-sm text-white font-medium">{user?.username}</div>
+            <div className="text-xs text-blue-300 capitalize">
+              {user?.role === "admin" ? "⚙️ Administrador" : "👁️ Visualizador"}
+            </div>
+          </div>
+
           <Link
             href="/trash"
             className={cn(
@@ -240,6 +250,16 @@ export function Sidebar({ notes, trashCount, onSelectNote, selectedNote }: Sideb
               <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full">{trashCount}</span>
             )}
           </Link>
+
+          <Button
+            onClick={logout}
+            variant="outline"
+            size="sm"
+            className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 justify-start"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Cerrar Sesión
+          </Button>
         </div>
       </div>
 

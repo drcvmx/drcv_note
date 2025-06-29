@@ -131,7 +131,7 @@ export default function NewNotePage() {
 
       <Sidebar notes={notes} trashCount={trashCount} selectedNote={null} />
 
-      <main className="flex-1 overflow-y-auto p-6 bg-grid-pattern">
+      <main className="flex-1 overflow-y-auto p-6 bg-grid-pattern pt-16 lg:pt-4">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
             <Link

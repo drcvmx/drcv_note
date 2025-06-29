@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/sidebar"
 import NoteView from "@/components/note-view"
 import Image from "next/image"
 import type { Note } from "@/types/notes"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default async function NotePage({ params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -33,21 +34,23 @@ export default async function NotePage({ params }: { params: { id: string } }) {
   const { count: trashCount } = await supabase.from("trash").select("*", { count: "exact", head: true })
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
-        alt="Mountain landscape"
-        fill
-        className="object-cover fixed -z-10 opacity-20 dark:opacity-10"
-        priority
-      />
+    <ProtectedRoute>
+      <div className="flex h-screen overflow-hidden">
+        {/* Background Image */}
+        <Image
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
+          alt="Mountain landscape"
+          fill
+          className="object-cover fixed -z-10 opacity-20 dark:opacity-10"
+          priority
+        />
 
-      <Sidebar notes={(notes as Note[]) || []} trashCount={trashCount || 0} selectedNote={note as Note} />
+        <Sidebar notes={(notes as Note[]) || []} trashCount={trashCount || 0} selectedNote={note as Note} />
 
-      <main className="flex-1 overflow-hidden p-6">
-        <NoteView initialNote={note as Note} />
-      </main>
-    </div>
+        <main className="flex-1 overflow-hidden p-4 md:p-6 ml-0 lg:ml-64 pt-16 lg:pt-4">
+          <NoteView initialNote={note as Note} />
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }

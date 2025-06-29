@@ -15,6 +15,7 @@ import { FileText, FolderOpen, Trash2, Plus, Palette, Edit, Check, X, MoreHorizo
 import type { Note } from "@/types/notes"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { usePermissions } from "@/hooks/use-permissions"
 
 interface NoteViewProps {
   initialNote: Note
@@ -30,6 +31,8 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
   const [childNotes, setChildNotes] = useState<Note[]>([])
   const [isLoadingChildren, setIsLoadingChildren] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+
+  const { canEdit, canDelete, canCreate } = usePermissions()
 
   const noteColors = [
     { name: "Default", value: "bg-white/10" },
@@ -140,7 +143,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
 
   return (
     <Card className="h-full flex flex-col backdrop-blur-lg bg-white/10 border-white/20 shadow-xl">
-      <CardHeader className="flex flex-col space-y-2 pb-2 border-b border-white/20 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+      <CardHeader className="flex flex-col space-y-2 pb-2 border-b border-white/20 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 pt-2 lg:pt-6">
         <div className="flex items-center gap-2">
           {note.type === "structured" ? (
             <FolderOpen className="h-5 w-5 text-blue-300" />
@@ -155,7 +158,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
 
         {/* Botones para pantallas medianas y grandes */}
         <div className="hidden sm:flex items-center gap-2">
-          {!isEditing ? (
+          {canEdit && !isEditing ? (
             <Button
               variant="outline"
               size="icon"
@@ -165,7 +168,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
             >
               <Edit className="h-4 w-4" />
             </Button>
-          ) : (
+          ) : canEdit && isEditing ? (
             <>
               <Button
                 variant="outline"
@@ -187,33 +190,35 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
                 <Check className="h-4 w-4" />
               </Button>
             </>
+          ) : null}
+
+          {canEdit && (
+            <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  title="Change color"
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                >
+                  <Palette className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 bg-white/10 backdrop-blur-lg border-white/20">
+                <div className="grid grid-cols-4 gap-2">
+                  {noteColors.map((color) => (
+                    <div
+                      key={color.value}
+                      className={`w-12 h-8 rounded cursor-pointer ${color.value} border border-white/20`}
+                      onClick={() => setNoteColor(color.value)}
+                    />
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
           )}
 
-          <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                title="Change color"
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-              >
-                <Palette className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 bg-white/10 backdrop-blur-lg border-white/20">
-              <div className="grid grid-cols-4 gap-2">
-                {noteColors.map((color) => (
-                  <div
-                    key={color.value}
-                    className={`w-12 h-8 rounded cursor-pointer ${color.value} border border-white/20`}
-                    onClick={() => setNoteColor(color.value)}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          {note.type === "structured" && (
+          {canCreate && note.type === "structured" && (
             <Link href={`/notes/new?parentId=${note.id}`}>
               <Button
                 variant="outline"
@@ -225,16 +230,20 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
               </Button>
             </Link>
           )}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleDelete}
-            title="Move to trash"
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-          {!isEditing && (
+
+          {canDelete && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleDelete}
+              title="Move to trash"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+
+          {canEdit && !isEditing && (
             <Button onClick={() => setIsEditing(true)} className="bg-blue-500 hover:bg-blue-600 text-white">
               <Edit className="mr-2 h-4 w-4" /> Edit
             </Button>
@@ -421,4 +430,5 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
     </Card>
   )
 }
+
 
