@@ -17,6 +17,7 @@ import Image from "next/image"
 import { Sidebar } from "@/components/sidebar"
 import { supabase } from "@/lib/supabase"
 import type { Note } from "@/types/notes"
+import { ProtectedRoute } from "@/components/protected-route"
 
 export default function NewNotePage() {
   const router = useRouter()
@@ -119,125 +120,128 @@ export default function NewNotePage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Background Image */}
-      <Image
-        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
-        alt="Mountain landscape"
-        fill
-        className="object-cover fixed -z-10 opacity-20 dark:opacity-10"
-        priority
-      />
+    <ProtectedRoute requireAdmin>
+      <div className="flex h-screen overflow-hidden">
+        {/* Background Image */}
+        <Image
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
+          alt="Mountain landscape"
+          fill
+          className="object-cover fixed -z-10 opacity-20 dark:opacity-10"
+          priority
+        />
 
-      <Sidebar notes={notes} trashCount={trashCount} selectedNote={null} />
+        <Sidebar notes={notes} trashCount={trashCount} selectedNote={null} />
 
-      <main className="flex-1 overflow-y-auto p-6 bg-grid-pattern pt-16 lg:pt-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <Link
-              href={parentId ? `/notes/${parentId}` : "/"}
-              className="inline-flex items-center text-sm hover:underline text-white"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {parentId ? "Back to parent note" : "Back to notes"}
-            </Link>
-          </div>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 ml-0 lg:ml-64 pt-16 lg:pt-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="mb-6">
+              <Link
+                href={parentId ? `/notes/${parentId}` : "/"}
+                className="inline-flex items-center text-sm hover:underline text-white"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {parentId ? "Back to parent note" : "Back to notes"}
+              </Link>
+            </div>
 
-          <Card className="backdrop-blur-sm bg-white/10 border-white/20 shadow-xl">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                {type === "structured" ? (
-                  <>
-                    <FolderOpen className="h-5 w-5 text-blue-300" />
-                    {parentId ? "Create New Subnote" : "Create New Folder"}
-                  </>
-                ) : (
-                  <>
-                    <FileText className="h-5 w-5 text-white" />
-                    {parentId ? "Create New Subnote" : "Create New Note"}
-                  </>
-                )}
-              </CardTitle>
-              {parentNote && (
-                <div className="text-sm text-white/70 mt-1">
-                  Parent: <span className="font-medium">{parentNote.title}</span>
-                </div>
-              )}
-            </CardHeader>
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-white">
-                    Title
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder="Note title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="content" className="text-white">
-                    Content
-                  </Label>
-                  <Textarea
-                    id="content"
-                    placeholder="Start writing..."
-                    rows={8}
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 min-h-[200px]"
-                  />
-                </div>
-
-                {!parentId && (
-                  <div className="space-y-2">
-                    <Label className="text-white">Note Type</Label>
-                    <RadioGroup
-                      value={type}
-                      onValueChange={(value) => setType(value as "casual" | "structured")}
-                      className="flex space-x-4"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="casual" id="casual" />
-                        <Label htmlFor="casual" className="text-white">
-                          Casual Note
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="structured" id="structured" />
-                        <Label htmlFor="structured" className="text-white">
-                          Structured Note (can have sub-notes)
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                )}
-              </CardContent>
-
-              <CardFooter>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white"
-                >
-                  {isSubmitting ? (
-                    "Creating..."
+            <Card className="backdrop-blur-sm bg-white/10 border-white/20 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  {type === "structured" ? (
+                    <>
+                      <FolderOpen className="h-5 w-5 text-blue-300" />
+                      {parentId ? "Create New Subnote" : "Create New Folder"}
+                    </>
                   ) : (
                     <>
-                      <Save className="mr-2 h-4 w-4" />
-                      {type === "structured" ? "Create Folder" : "Create Note"}
+                      <FileText className="h-5 w-5 text-white" />
+                      {parentId ? "Create New Subnote" : "Create New Note"}
                     </>
                   )}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
-      </main>
-    </div>
+                </CardTitle>
+                {parentNote && (
+                  <div className="text-sm text-white/70 mt-1">
+                    Parent: <span className="font-medium">{parentNote.title}</span>
+                  </div>
+                )}
+              </CardHeader>
+              <form onSubmit={handleSubmit}>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-white">
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
+                      placeholder="Note title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="content" className="text-white">
+                      Content
+                    </Label>
+                    <Textarea
+                      id="content"
+                      placeholder="Start writing..."
+                      rows={8}
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 min-h-[200px]"
+                    />
+                  </div>
+
+                  {!parentId && (
+                    <div className="space-y-2">
+                      <Label className="text-white">Note Type</Label>
+                      <RadioGroup
+                        value={type}
+                        onValueChange={(value) => setType(value as "casual" | "structured")}
+                        className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="casual" id="casual" />
+                          <Label htmlFor="casual" className="text-white">
+                            Casual Note
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="structured" id="structured" />
+                          <Label htmlFor="structured" className="text-white">
+                            Structured Note (can have sub-notes)
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  )}
+                </CardContent>
+
+                <CardFooter>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    {isSubmitting ? (
+                      "Creating..."
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        {type === "structured" ? "Create Folder" : "Create Note"}
+                      </>
+                    )}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   )
 }
+

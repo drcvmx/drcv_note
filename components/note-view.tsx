@@ -264,7 +264,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
             </PopoverTrigger>
             <PopoverContent className="w-56 bg-white/10 backdrop-blur-lg border-white/20 p-0">
               <div className="flex flex-col">
-                {!isEditing ? (
+                {canEdit && !isEditing ? (
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -275,7 +275,7 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
                   >
                     <Edit className="mr-2 h-4 w-4" /> Edit
                   </Button>
-                ) : (
+                ) : canEdit && isEditing ? (
                   <>
                     <Button
                       variant="ghost"
@@ -299,20 +299,22 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
                       <Check className="mr-2 h-4 w-4" /> Save
                     </Button>
                   </>
+                ) : null}
+
+                {canEdit && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowColorPicker(!showColorPicker)
+                      setShowMobileMenu(false)
+                    }}
+                    className="justify-start text-white hover:bg-white/20"
+                  >
+                    <Palette className="mr-2 h-4 w-4" /> Change Color
+                  </Button>
                 )}
 
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setShowColorPicker(!showColorPicker)
-                    setShowMobileMenu(false)
-                  }}
-                  className="justify-start text-white hover:bg-white/20"
-                >
-                  <Palette className="mr-2 h-4 w-4" /> Change Color
-                </Button>
-
-                {note.type === "structured" && (
+                {canCreate && note.type === "structured" && (
                   <Link href={`/notes/new?parentId=${note.id}`}>
                     <Button
                       variant="ghost"
@@ -324,16 +326,25 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
                   </Link>
                 )}
 
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    handleDelete()
-                    setShowMobileMenu(false)
-                  }}
-                  className="justify-start text-white hover:bg-white/20"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Move to Trash
-                </Button>
+                {canDelete && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      handleDelete()
+                      setShowMobileMenu(false)
+                    }}
+                    className="justify-start text-white hover:bg-white/20"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Move to Trash
+                  </Button>
+                )}
+
+                {/* Si no hay opciones disponibles, mostrar mensaje */}
+                {!canEdit && !canDelete && !canCreate && (
+                  <div className="px-4 py-3 text-white/50 text-sm text-center">
+                    Solo tienes permisos de visualización
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -414,11 +425,13 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
                   ) : (
                     <div className="text-white/50 text-sm flex items-center gap-2">
                       <span>No subnotes yet.</span>
-                      <Link href={`/notes/new?parentId=${note.id}`}>
-                        <Button variant="link" className="text-blue-300 p-0 h-auto">
-                          Create one
-                        </Button>
-                      </Link>
+                      {canCreate && (
+                        <Link href={`/notes/new?parentId=${note.id}`}>
+                          <Button variant="link" className="text-blue-300 p-0 h-auto">
+                            Create one
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   )}
                 </div>
@@ -430,5 +443,6 @@ export default function NoteView({ initialNote, onNoteUpdated }: NoteViewProps) 
     </Card>
   )
 }
+
 
 
